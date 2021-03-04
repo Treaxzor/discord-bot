@@ -1,0 +1,24 @@
+{
+  "token": null,
+  "security": null,
+  "role": {
+    "id": null
+  },
+  "authentication": {
+    "session": {
+      "secret": ""
+    },
+    "username": "",
+    "password": ""
+  },
+  "database": {
+    "user": "",
+    "password": "",
+    "database": "",
+    "options": {
+      "dialect": "postgres",
+      "host": "localhost",
+      "port": "5432"
+    }
+  }
+}

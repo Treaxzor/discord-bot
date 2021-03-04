@@ -1,0 +1,1 @@
+alter table customers alter column krypton_invoice_id drop not null;
