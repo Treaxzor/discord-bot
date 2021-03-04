@@ -1,10 +1,9 @@
-const { Client } = require('discord.js');
 const config = require('config');
+const discordService = require('../services/discordService');
 const dbService = require('../services/dbService');
 
-const client = new Client();
 
-client.ws.on('INTERACTION_CREATE', async interaction => {
+discordService.client.ws.on('INTERACTION_CREATE', async interaction => {
   if (interaction.data.name == "enroll") {
     const email = interaction.data.options.filter(x => x.name == 'email')[0].value.trim().toLowerCase();
 
@@ -22,9 +21,9 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
     }
 
 
-    const guild = await client.guilds.fetch(interaction.guild_id);
-    const member = await guild.members.fetch(interaction.member.user.id)
-    const role = await guild.roles.fetch(config.role.id)
+    const guild = await discordService.getGuild(interaction.guild_id);
+    const member = await discordService.getGuildMember(guild, interaction.member.user.id)
+    const role = await discordService.getGuildRole(config.role.id)
 
     if (member.roles.cache.has(role.id)) {
       member.send('You are allready in the group');
@@ -53,5 +52,3 @@ client.ws.on('INTERACTION_CREATE', async interaction => {
     member.send('Thank you! You have been granted access to Krypton Chats');
   }
 });
-
-client.login(config.token);

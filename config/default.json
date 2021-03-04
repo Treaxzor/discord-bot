@@ -4,6 +4,9 @@
   "role": {
     "id": null
   },
+  "discrod": {
+    "enabled": false,
+  },
   "authentication": {
     "session": {
       "secret": ""

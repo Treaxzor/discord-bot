@@ -1,4 +1,5 @@
 const { connection } = require('../db');
+const config = require('config');
 const dbService = require('../services/dbService')
 
 const filter = async (req, res) => {
@@ -109,6 +110,9 @@ const remove = async (req, res) => {
       isValid: false,
       errors: ['Customer with email does not exist']
     })
+  }
+  if (customer.discord_guild_id) {
+    await discordService.removeRole(customer.discord_guild_id, customer.discrod_id, config.role.id)
   }
   await connection.query('delete from customers where email = :email', {
     replacements: {

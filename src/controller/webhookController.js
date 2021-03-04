@@ -1,5 +1,6 @@
 const { connection } = require('../db');
 const config = require('config');
+const discordService = require('../services/discordService');
 
 const payKickStartWeHook = async (req, res) => {
   if (!req.headers["x-auth"] || req.headers["x-auth"] != config.security) {
@@ -7,7 +8,7 @@ const payKickStartWeHook = async (req, res) => {
   }
   const { type, email, invoice } = req.body;
 
-  const existingQuery = await connection.query('select id,has_telegram from customers where email = :email', {
+  const existingQuery = await connection.query('select id,has_telegram,discord_guild_id,discord_id   from customers where email = :email', {
     replacements: {
       email: email,
     },
@@ -53,6 +54,9 @@ const payKickStartWeHook = async (req, res) => {
           type: "UPDATE"
         })
       } else {
+        if (existing.discord_guild_id) {
+          await discordService.removeRole(existing.discord_guild_id, existing.discrod_id, config.role.id)
+        }
         await connection.query('delete from customers where id = :id', {
           replacements: {
             id: existing.id,

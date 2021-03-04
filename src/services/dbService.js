@@ -12,7 +12,7 @@ const bind = async (email, guildId, memberId, memberName) => {
 }
 
 const get = async (email) => {
-  const query = await connection.query('select id, discord_id from customers where email = :email', {
+  const query = await connection.query('select id, discord_id,discord_guild_id from customers where email = :email', {
     replacements: {
       email
     },
