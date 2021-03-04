@@ -16,7 +16,7 @@ const getGuildRole = async (guild, id) => {
   return guild.roles.fetch(id);
 }
 
-const removeRole = (guildId, memberId, roleId) => {
+const removeRole = async (guildId, memberId, roleId) => {
   const guild = await getGuild(guildId);
   const member = await getGuildMember(guild, memberId);
   member.roles.remove(roleId);

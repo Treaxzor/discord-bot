@@ -5,7 +5,7 @@
     "id": null
   },
   "discrod": {
-    "enabled": false,
+    "enabled": false
   },
   "authentication": {
     "session": {
