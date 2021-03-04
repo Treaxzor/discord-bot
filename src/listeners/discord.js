@@ -8,14 +8,14 @@ discordService.client.ws.on('INTERACTION_CREATE', async interaction => {
     const email = interaction.data.options.filter(x => x.name == 'email')[0].value.trim().toLowerCase();
 
     // ack interaction
-    client.api.interactions(interaction.id, interaction.token).callback.post({
+    discordService.client.api.interactions(interaction.id, interaction.token).callback.post({
       data: {
         type: 2,
       }
     });
 
     if (!interaction.guild_id) {
-      const user = await client.users.fetch(interaction.user.id);
+      const user = await discordService.getUser(interaction.user.id);
       user.send("This command needs to be executed in server's channel");
       return;
     }
@@ -23,7 +23,7 @@ discordService.client.ws.on('INTERACTION_CREATE', async interaction => {
 
     const guild = await discordService.getGuild(interaction.guild_id);
     const member = await discordService.getGuildMember(guild, interaction.member.user.id)
-    const role = await discordService.getGuildRole(config.role.id)
+    const role = await discordService.getGuildRole(guild, config.role.id)
 
     if (member.roles.cache.has(role.id)) {
       member.send('You are allready in the group');

@@ -1,6 +1,7 @@
 const { connection } = require('../db');
 const config = require('config');
 const dbService = require('../services/dbService')
+const discordService = require('../services/discordService');
 
 const filter = async (req, res) => {
   let { search, limit, offset } = req.query;
@@ -112,7 +113,7 @@ const remove = async (req, res) => {
     })
   }
   if (customer.discord_guild_id) {
-    await discordService.removeRole(customer.discord_guild_id, customer.discrod_id, config.role.id)
+    await discordService.removeRole(customer.discord_guild_id, customer.discord_id, config.role.id)
   }
   await connection.query('delete from customers where email = :email', {
     replacements: {

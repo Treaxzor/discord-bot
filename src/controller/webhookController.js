@@ -55,7 +55,7 @@ const payKickStartWeHook = async (req, res) => {
         })
       } else {
         if (existing.discord_guild_id) {
-          await discordService.removeRole(existing.discord_guild_id, existing.discrod_id, config.role.id)
+          await discordService.removeRole(existing.discord_guild_id, existing.discord_id, config.role.id)
         }
         await connection.query('delete from customers where id = :id', {
           replacements: {

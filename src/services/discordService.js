@@ -8,6 +8,10 @@ const getGuild = async (id) => {
   return client.guilds.fetch(id);
 }
 
+const getUser = async (id) => {
+  return client.users.fetch(id);
+}
+
 const getGuildMember = async (guild, id) => {
   return guild.members.fetch(id)
 }
@@ -24,6 +28,7 @@ const removeRole = async (guildId, memberId, roleId) => {
 
 module.exports = {
   client,
+  getUser,
   getGuild,
   getGuildMember,
   getGuildRole,
