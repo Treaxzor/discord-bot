@@ -38,7 +38,7 @@ if (config.discord.enabled) {
       }
       const customer = await dbService.get(email);
       if (!customer) {
-        member.send('This email address has not enrolled to krypton or subscribed to telegram');
+        member.send('This email address has not enrolled to krypton! Telegram support coming soon!');
         return;
       }
 

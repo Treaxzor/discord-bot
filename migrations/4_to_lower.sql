@@ -1,0 +1,1 @@
+update customers set email = lower(email);
