@@ -1,18 +1,25 @@
 <template>
 <div>
   <div class="row">
-    <div class="col-md-6 col-lg-6 col-sm-6">
+    <div class="col-md-4 col-lg-4 col-sm-4">
       <h3 class="mt-2 mb-2">Add customer</h3>
       <input type="text" v-model="addModel.email" class="form-control" placeholder="email...">
       <div class="mt-2 text-right">
          <button type="button" class="btn btn-primary" @click="add">Add</button>
       </div>
     </div>
-     <div class="col-md-6 col-lg-6 col-sm-6">
+     <div class="col-md-4 col-lg-4 col-sm-4">
       <h3 class="mt-2 mb-2">Remove customer</h3>
       <input type="text" v-model="removeModel.email" class="form-control" placeholder="email...">
       <div class="mt-2 text-right">
          <button type="button" class="btn btn-primary" @click="remove">Remove</button>
+      </div>
+    </div>
+     <div class="col-md-4 col-lg-4 col-sm-4">
+      <h3 class="mt-2 mb-2">Unlink customer</h3>
+      <input type="text" v-model="unlinkModel.email" class="form-control" placeholder="email...">
+      <div class="mt-2 text-right">
+         <button type="button" class="btn btn-primary" @click="unlink">Unlink</button>
       </div>
     </div>
   </div>
@@ -52,6 +59,9 @@ export default {
         email: null,
       },
       removeModel:{
+        email: null,
+      },
+      unlinkModel:{
         email: null,
       },
       columns: [
@@ -139,6 +149,25 @@ export default {
         }
       })
       this.removeModel.email = null;
+    },
+    unlink(){
+      this.$http.post("/api/v1/unlink",this.unlinkModel).then((res) => {
+        if(res.data.isValid){
+          this.$toastr.success('Email unlinked from discord','Success');
+          this.$refs.table.refresh();
+        }
+        if(res.data.errors){
+          for(let i=0; i< res.data.errors.length;i+=1){
+            this.$toastr.error(res.data.errors[i], 'Error');
+          }
+        }
+      }).catch((err) => {
+        if(err.response && err.response.status == 401){
+          this.$toastr.error("Session expired","Error");
+           this.$router.push("/login")
+        }
+      })
+      this.unlinkModel.email = null;
     },
     upload(){
       const fileInput = this.$refs.fileInput;

@@ -130,6 +130,41 @@ const remove = async (req, res) => {
   })
 }
 
+const unlink = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.json({
+      isValid: false,
+      errors: ['Email is mandatory']
+    })
+  }
+
+  const customer = await dbService.get(email);
+  if (!customer) {
+    return res.json({
+      isValid: false,
+      errors: ['Customer with email does not exist']
+    })
+  }
+  if (!customer.discord_guild_id) {
+    return res.json({
+      isValid: false,
+      errors: ['Customer has not been linked']
+    })
+  }
+  await connection.query('update customers set discord_guild_id = null,discord_id = null, discord_name = null where email = :email', {
+    replacements: {
+      email
+    }
+  })
+
+  res.json({
+    isValid: true,
+    errors: []
+  })
+}
+
 const telegramUpload = async (req, res) => {
   if (!req.files || !req.files.file) {
     return res.json({
@@ -233,5 +268,6 @@ module.exports = {
   add,
   remove,
   telegramUpload,
-  kryptonUpload
+  kryptonUpload,
+  unlink
 }

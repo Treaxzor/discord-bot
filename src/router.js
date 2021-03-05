@@ -18,6 +18,7 @@ router.post('/webhook/paykickstart', webhookController.payKickStartWeHook);
 
 router.get("/api/v1/filter", isAuthenticated, apiController.filter);
 router.post("/api/v1/add", isAuthenticated, apiController.add);
+router.post("/api/v1/unlink", isAuthenticated, apiController.unlink);
 router.post("/api/v1/remove", isAuthenticated, apiController.remove);
 router.post("/api/v1/telegram/upload", isAuthenticated, fileUpload(), apiController.telegramUpload)
 router.post("/api/v1/krypton/upload", isAuthenticated, fileUpload(), apiController.kryptonUpload)
