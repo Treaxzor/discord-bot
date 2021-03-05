@@ -1,5 +1,7 @@
 const { connection } = require('../db');
 const config = require('config');
+const CsvParser = require('csv-parser');
+const { Duplex } = require('stream');
 const dbService = require('../services/dbService')
 const discordService = require('../services/discordService');
 
@@ -58,6 +60,7 @@ const filter = async (req, res) => {
         email: x.email,
         invoice: x.krypton_invoice_id,
         hasTelegram: x.has_telegram,
+        telegramId: x.telegram_id,
         hasKrypton: x.has_krypton,
         isManual: x.is_manual,
         discordUserName: x.discord_name
@@ -127,8 +130,108 @@ const remove = async (req, res) => {
   })
 }
 
+const telegramUpload = async (req, res) => {
+  if (!req.files || !req.files.file) {
+    return res.json({
+      isValid: false,
+      errors: ['Invalid input']
+    })
+  }
+
+  try {
+    const rows = await new Promise((resolve, err) => {
+      const results = [];
+      var duplex = new Duplex();
+      duplex.push(req.files.file.data);
+      duplex.push(null)
+      duplex.pipe(CsvParser({ separator: ';' }))
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => resolve(results))
+    });
+
+    await Promise.all(rows.map(async (row) => {
+      const customer = await dbService.get(row.email);
+      if (customer && !customer.has_telegram) {
+        await connection.query('update customers set has_telegram = true, telegram_id = :telegramId where email =:email', {
+          replacements: {
+            email: row.email,
+            telegramId: row.userId
+          },
+          type: 'UPDATE'
+        })
+      }
+      if (!customer) {
+        await connection.query('insert into customers (email,has_telegram,telegram_id) values(:email,true,:telegramId)', {
+          replacements: {
+            email: row.email,
+            telegramId: row.userId
+          },
+          type: 'INSERT'
+        })
+      }
+    }))
+
+  } catch (e) {
+    console.log(e.message);
+    return res.json({
+      isValid: false,
+      errors: ['Failed to proccess csv file']
+    })
+  }
+  return res.json({
+    isValid: true,
+    errors: []
+  });
+}
+
+const kryptonUpload = async (req, res) => {
+  if (!req.files || !req.files.file) {
+    return res.json({
+      isValid: false,
+      errors: ['Invalid input']
+    })
+  }
+
+  try {
+    const rows = await new Promise((resolve, err) => {
+      const results = [];
+      var duplex = new Duplex();
+      duplex.push(req.files.file.data);
+      duplex.push(null)
+      duplex.pipe(CsvParser({ separator: ',' }))
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => resolve(results))
+    });
+
+    await Promise.all(rows.map(async (row) => {
+      await connection.query('insert into customers (email,has_krypton) values (:email,true)', {
+        replacements: {
+          email: row['Customer Email']
+        },
+        type: 'INSERT'
+      })
+    }))
+  } catch (e) {
+    console.log(e.message);
+    return res.json({
+      isValid: false,
+      errors: ['Failed to proccess csv file']
+    })
+  }
+  return res.json({
+    isValid: true,
+    errors: []
+  });
+}
+
 module.exports = {
   filter,
   add,
-  remove
+  remove,
+  telegramUpload,
+  kryptonUpload
 }

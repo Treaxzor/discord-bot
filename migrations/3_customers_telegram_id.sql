@@ -1,0 +1,1 @@
+alter table customers add telegram_id varchar null;
