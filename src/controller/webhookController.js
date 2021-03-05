@@ -34,7 +34,7 @@ const payKickStartWeHook = async (req, res) => {
     } else {
       await connection.query('insert into customers(email,krypton_invoice_id,has_krypton) values(:email,:invoice,true)', {
         replacements: {
-          email: email,
+          email: email.toLowerCase(),
           invoice: invoice
         },
         type: "INSERT"

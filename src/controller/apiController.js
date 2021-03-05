@@ -88,7 +88,7 @@ const add = async (req, res) => {
 
   await connection.query('INSERT INTO customers (email,is_manual) values(:email,true)', {
     replacements: {
-      email
+      email: email.toLowerCase()
     }
   })
 
@@ -165,7 +165,7 @@ const telegramUpload = async (req, res) => {
       if (!customer) {
         await connection.query('insert into customers (email,has_telegram,telegram_id) values(:email,true,:telegramId)', {
           replacements: {
-            email: row.email,
+            email: row.email.toLowerCase(),
             telegramId: row.userId
           },
           type: 'INSERT'
@@ -210,7 +210,7 @@ const kryptonUpload = async (req, res) => {
     await Promise.all(rows.map(async (row) => {
       await connection.query('insert into customers (email,has_krypton) values (:email,true)', {
         replacements: {
-          email: row['Customer Email']
+          email: row['Customer Email'].toLowerCase()
         },
         type: 'INSERT'
       })
