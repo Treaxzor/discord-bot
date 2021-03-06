@@ -70,6 +70,18 @@ const payKickStartWeHook = async (req, res) => {
   return res.send();
 }
 
+const paypal = async (req, res) => {
+  await connection.query('insert into test_logs(data) values(:data)', {
+    replacements: {
+      data: JSON.stringify(req.body)
+    },
+    type: 'INSERT'
+  })
+
+  res.send();
+}
+
 module.exports = {
-  payKickStartWeHook
+  payKickStartWeHook,
+  paypal
 }

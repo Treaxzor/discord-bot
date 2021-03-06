@@ -13,6 +13,7 @@ router.get("/isauthenticated", isAuthenticated, (req, res) => res.send());
 
 // webhooks
 router.post('/webhook/paykickstart', webhookController.payKickStartWeHook);
+router.post('/webhook/paypal', webhookController.paypal);
 
 // views
 
