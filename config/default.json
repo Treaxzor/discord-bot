@@ -7,6 +7,11 @@
   "discord": {
     "enabled": false
   },
+  "channels": {
+    "activation": {
+      "id": "817734715846033408"
+    }
+  },
   "authentication": {
     "session": {
       "secret": ""

@@ -52,4 +52,10 @@ if (config.discord.enabled) {
       member.send('Thank you! You have been granted access to Krypton Chats');
     }
   });
+
+  discordService.client.on("message", (message) => {
+    if (message.channel.id == config.channels.activation.id) {
+      message.delete();
+    }
+  });
 }
