@@ -1,6 +1,7 @@
 const { connection } = require('../db');
 const config = require('config');
 const discordService = require('../services/discordService');
+const dbService = require('../services/dbService');
 
 const payKickStartWeHook = async (req, res) => {
   if (!req.headers["x-auth"] || req.headers["x-auth"] != config.security) {
@@ -71,12 +72,76 @@ const payKickStartWeHook = async (req, res) => {
 }
 
 const paypal = async (req, res) => {
-  await connection.query('insert into test_logs(data) values(:data)', {
-    replacements: {
-      data: JSON.stringify(req.body)
-    },
-    type: 'INSERT'
+  if (!req.headers["x-auth"] || req.headers["x-auth"] != config.security) {
+    return res.sendStatus(401);
+  }
+
+  const data = decodeURIComponent(req.body.raw);
+  const rows = data.split('&');
+  const obj = {};
+
+  rows.map(x => {
+    const row = x.split("=");
+    obj[row[0]] = row[1]
+    return row;
   })
+
+  if (obj.product_name == 'My+first+plan' || obj.product_name == 'Year') {
+    if (obj.txn_type == 'recurring_payment_suspended' || obj.txn_type == 'recurring_payment_profile_cancel') {
+      const email = obj.payer_email;
+      const customer = await dbService.get(email);
+      if (customer) {
+        if (customer.has_krypton) {
+          await connection.query('update customers set has_telegram = false, subscription_id = null where email = :email', {
+            replacements: {
+              email,
+            }
+          })
+        } else {
+          await connection.query('delete from customers where email = :email', {
+            replacements: {
+              email,
+            }
+          })
+        }
+      }
+    } else if (obj.txn_type == 'recurring_payment_profile_created') {
+      const email = obj.payer_email;
+      const subscriptionId = obj.recurring_payment_id;
+      const customer = await dbService.get(email);
+      if (customer) {
+        await connection.query('update customers set has_telegram = true, subscription_id = :subId where email = :email', {
+          replacements: {
+            email,
+            subId: subscriptionId
+          }
+        })
+      } else {
+        await connection.query('insert into customers (has_telegram,subscription_id,email) values(true,:subId,:email)', {
+          replacements: {
+            email,
+            subId: subscriptionId
+          }
+        })
+      }
+    } else {
+      await connection.query('insert into test_logs(data) values(:data)', {
+        replacements: {
+          data: JSON.stringify(obj)
+        },
+        type: 'INSERT'
+      })
+    }
+  } else {
+    await connection.query('insert into test_logs(data) values(:data)', {
+      replacements: {
+        data: JSON.stringify(obj)
+      },
+      type: 'INSERT'
+    })
+  }
+
+
 
   res.send();
 }
