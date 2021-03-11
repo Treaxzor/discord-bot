@@ -1,0 +1,1 @@
+alter table customers add column migrated boolean not null default false;

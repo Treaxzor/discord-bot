@@ -14,7 +14,7 @@ const bind = async (email, guildId, memberId, memberName) => {
 const get = async (email) => {
   const query = await connection.query('select id, has_telegram, has_krypton, discord_id,discord_guild_id, subscription_id from customers where email = :email', {
     replacements: {
-      email
+      email: email.toLowerCase()
     },
     type: 'SELECT'
   });

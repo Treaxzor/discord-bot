@@ -165,61 +165,89 @@ const unlink = async (req, res) => {
   })
 }
 
-// const telegramUpload = async (req, res) => {
-//   if (!req.files || !req.files.file) {
-//     return res.json({
-//       isValid: false,
-//       errors: ['Invalid input']
-//     })
-//   }
+const telegramUpload = async (req, res) => {
+  if (!req.files || !req.files.payments || !req.files.subscriptions) {
+    return res.json({
+      isValid: false,
+      errors: ['Invalid input']
+    })
+  }
 
-//   try {
-//     const rows = await new Promise((resolve, err) => {
-//       const results = [];
-//       var duplex = new Duplex();
-//       duplex.push(req.files.file.data);
-//       duplex.push(null)
-//       duplex.pipe(CsvParser({ separator: ';' }))
-//         .on('data', (data) => {
-//           results.push(data);
-//         })
-//         .on('end', () => resolve(results))
-//     });
+  try {
+    const subscriptions = await new Promise((resolve, err) => {
+      const results = [];
+      var duplex = new Duplex();
+      duplex.push(req.files.subscriptions.data);
+      duplex.push(null)
+      duplex.pipe(CsvParser({ separator: ',' }))
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => resolve(results))
+    });
 
-//     await Promise.all(rows.map(async (row) => {
-//       const customer = await dbService.get(row.email);
-//       if (customer && !customer.has_telegram) {
-//         await connection.query('update customers set has_telegram = true, telegram_id = :telegramId where email =:email', {
-//           replacements: {
-//             email: row.email,
-//             telegramId: row.userId
-//           },
-//           type: 'UPDATE'
-//         })
-//       }
-//       if (!customer) {
-//         await connection.query('insert into customers (email,has_telegram,telegram_id) values(:email,true,:telegramId)', {
-//           replacements: {
-//             email: row.email.toLowerCase(),
-//             telegramId: row.userId
-//           },
-//           type: 'INSERT'
-//         })
-//       }
-//     }))
 
-//   } catch (e) {
-//     console.log(e.message);
-//     return res.json({
-//       isValid: false,
-//       errors: ['Failed to proccess csv file']
-//     })
-//   }
-//   return res.json({
-//     isValid: true,
-//     errors: []
-//   });
-// }
+    const payments = await new Promise((resolve, err) => {
+      const results = [];
+      var duplex = new Duplex();
+      duplex.push(req.files.payments.data);
+      duplex.push(null)
+      duplex.pipe(CsvParser({ separator: ',' }))
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => resolve(results))
+    });
+
+    const list = await Promise.all(subscriptions.map(async (subscription) => {
+      const payment = payments.filter(x => x['Reference Txn ID'] == subscription['Active profiles']);
+      if (payment.length == 0) {
+        return null;
+      }
+      return {
+        subscriptionId: subscription['Active profiles'],
+        email: payment[0]['From Email Address']
+      }
+    }))
+
+    var stop = 0;
+
+
+    await Promise.all(list.filter(x => x != null).map(async (row) => {
+      const customer = await dbService.get(row.email);
+
+      if (customer && !customer.has_telegram) {
+        await connection.query('update customers set has_telegram = true, subscription_id = :subId, migrated = true where email =:email', {
+          replacements: {
+            email: row.email.toLowerCase(),
+            subId: row.subscriptionId
+          },
+          type: 'UPDATE'
+        })
+      }
+      if (!customer) {
+        await connection.query('insert into customers (email,has_telegram,subscription_id,migrated) values(:email,true,:subId,true)', {
+          replacements: {
+            email: row.email.toLowerCase(),
+            subId: row.subscriptionId
+          },
+          type: 'INSERT'
+        })
+      }
+    }))
+
+  } catch (e) {
+    console.log(e.message);
+    return res.json({
+      isValid: false,
+      errors: ['Failed to proccess csv file']
+    })
+  }
+  return res.json({
+    isValid: true,
+    errors: []
+  });
+}
 
 const kryptonUpload = async (req, res) => {
   if (!req.files || !req.files.file) {
@@ -267,7 +295,7 @@ module.exports = {
   filter,
   add,
   remove,
-  // telegramUpload,
+  telegramUpload,
   kryptonUpload,
   unlink
 }
