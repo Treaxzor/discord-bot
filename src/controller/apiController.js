@@ -23,7 +23,7 @@ const filter = async (req, res) => {
     });
     total = totalQuery[0].count;
   } else {
-    const totalQuery = await connection.query("select count(1) as count from customers where email  LIKE '%' || :search || '%' or discord_name LIKE '%' || :search || '%'", {
+    const totalQuery = await connection.query("select count(1) as count from customers where email  LIKE '%' || lower(:search) || '%' or lower(discord_name) LIKE '%' || lower(:search) || '%'", {
       replacements: {
         search
       },
@@ -43,7 +43,7 @@ const filter = async (req, res) => {
       type: 'SELECT'
     });
   } else {
-    records = await connection.query("select * from customers where email  LIKE '%' || :search || '%' or discord_name LIKE '%' || :search || '%' order by created_at desc limit :limit offset :offset", {
+    records = await connection.query("select * from customers where email  LIKE '%' || lower(:search) || '%' or lower(discord_name) LIKE '%' || lower(:search) || '%' order by created_at desc limit :limit offset :offset", {
       replacements: {
         limit,
         offset,
